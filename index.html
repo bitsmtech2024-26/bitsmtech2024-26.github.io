@@ -98,6 +98,21 @@
         min-height: 500px;
         border: none;
       }
+
+      @media (max-width: 768px) {
+        .viewer {
+          display: none;
+        }
+        .file-browser {
+          width: 100%;
+          max-width: none;
+          padding: 5px;
+          max-height: none;
+        }
+        body {
+          padding: 0;
+        }
+      }
     </style>
     <script
       defer
@@ -154,7 +169,14 @@
 
       // Function to update URL and iframe
       function openPDF(path) {
-        document.getElementById("pdfViewer").src = path;
+        const screenWidth = window.innerWidth;
+        if (screenWidth < 768) {
+          // open file in new tab if screen width is less than 768px
+          window.open(path, "_blank");
+        } else {
+          // open file in iframe if screen width is greater than 768px
+          document.getElementById("pdfViewer").src = path;
+        }
         window.location.hash = encodeURIComponent(path);
       }
 
