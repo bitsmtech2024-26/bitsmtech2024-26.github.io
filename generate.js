@@ -47,12 +47,14 @@ const dir_whitelist = [
 
 function generateJson(dir) {
   const output = {};
-  const items = fs.readdirSync(dir);
+  let items = dir_whitelist;
+  if (dir) {
+    items = fs.readdirSync(dir);
+  } else {
+    dir = ".";
+  }
 
   items.forEach((item) => {
-    if (!dir_whitelist.includes(item)) {
-      return;
-    }
     const itemPath = path.join(dir, item);
     const stat = fs.statSync(itemPath);
 
@@ -69,7 +71,7 @@ function generateJson(dir) {
   return output;
 }
 
-const jsonOutput = generateJson(".");
+const jsonOutput = generateJson();
 fs.writeFileSync("files.json", JSON.stringify(jsonOutput));
 
 console.log("files.json has been generated!");
