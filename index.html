@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Browser</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        display: flex;
+        gap: 20px;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      .file-browser {
+        flex: 1;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 20%;
+        max-width: 200px;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        overflow-y: auto;
+        max-height: 90vh;
+      }
+
+      .viewer {
+        flex: 2;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-height: 500px;
+      }
+
+      .folder,
+      .file {
+        padding: 8px;
+        margin: 4px 0;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .folder:hover,
+      .file:hover {
+        background-color: #f0f0f0;
+      }
+
+      .folder i,
+      .file i {
+        margin-right: 8px;
+      }
+
+      .folder {
+        color: #2c3e50;
+        white-space: nowrap;
+      }
+
+      .file {
+        color: #34495e;
+        margin-left: 20px;
+      }
+
+      .folder i {
+        color: #f1c40f;
+      }
+
+      .file i {
+        color: #3498db;
+      }
+
+      .folder-content {
+        margin-left: 20px;
+        display: none;
+      }
+
+      .folder.open .folder-content {
+        display: block;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        min-height: 500px;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="file-browser" id="fileBrowser"></div>
+      <div class="viewer" id="fileViewer">
+        <iframe id="pdfViewer"></iframe>
+      </div>
+    </div>
+
+    <script>
+      // Function to create the file browser structure
+      function createFileBrowser(data, container) {
+        for (let key in data) {
+          const item = data[key];
+          if (typeof item === "object") {
+            // Create folder
+            const folderDiv = document.createElement("div");
+            folderDiv.className = "folder";
+            folderDiv.title = key;
+            folderDiv.innerHTML = `
+                        <i class="fas fa-folder"></i>
+                        ${key}
+                        <div class="folder-content"></div>
+                    `;
+            container.appendChild(folderDiv);
+
+            // Add click handler to toggle folder
+            folderDiv.addEventListener("click", function (e) {
+              if (e.target === folderDiv) {
+                this.classList.toggle("open");
+              }
+            });
+
+            // Recursively create content for this folder
+            createFileBrowser(item, folderDiv.querySelector(".folder-content"));
+          } else {
+            // Create file
+            const fileDiv = document.createElement("div");
+            fileDiv.className = "file";
+            fileDiv.innerHTML = `<i class="fas fa-file-pdf"></i>${key}`;
+            fileDiv.addEventListener("click", () => {
+              openPDF(item);
+            });
+            container.appendChild(fileDiv);
+          }
+        }
+      }
+
+      // Function to update URL and iframe
+      function openPDF(path) {
+        document.getElementById("pdfViewer").src = path;
+        window.location.hash = encodeURIComponent(path);
+      }
+
+      // Function to load PDF from URL hash on page load
+      function loadPDFFromHash() {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
+        if (hash) {
+          document.getElementById("pdfViewer").src = hash;
+        }
+      }
+
+      // Fetch and process the files.json
+      fetch("files.json")
+        .then((response) => response.json())
+        .then((data) => {
+          const fileBrowser = document.getElementById("fileBrowser");
+          createFileBrowser(data, fileBrowser);
+        })
+        .catch((error) => {
+          console.error("Error loading files.json:", error);
+          document.getElementById("fileBrowser").innerHTML =
+            "Error loading file structure";
+        });
+      window.addEventListener("load", loadPDFFromHash);
+    </script>
+  </body>
+</html>
